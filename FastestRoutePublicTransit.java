@@ -1,7 +1,7 @@
 /**
  * Public Transit
- * Author: Your Name and Carolyn Yao
- * Does this compile? Y/N
+ * Author: Jingwei Chen and Carolyn Yao
+ * Does this compile? Y
  */
 
 /**
@@ -34,7 +34,52 @@ public class FastestRoutePublicTransit {
   ) {
     // Your code along with comments here. Feel free to borrow code from any
     // of the existing method. You can also make new helper methods.
-    return 0;
+    int numVertices = lengths[0].length;
+    // This is the array where we'll store all the final shortest times
+    int[] times = new int[numVertices];
+    // processed[i] will true if vertex i's shortest time is already finalized
+    Boolean[] processed = new Boolean[numVertices];
+    // Initialize all distances as INFINITE and processed[] as false
+    for (int v = 0; v < numVertices; v++) {
+      times[v] = Integer.MAX_VALUE;
+      processed[v] = false;
+    }
+    // Distance of source vertex from itself is always 0
+    times[S] = 0;
+    // Find shortest path to all the vertices
+    for (int count = 0; count < numVertices - 1 ; count++) {
+      // Pick the minimum distance vertex from the set of vertices not yet processed.
+      // u is always equal to source in first iteration.
+      // Mark u as processed.
+      int u = findNextToProcess(times, processed);
+      processed[u] = true;
+      // Update time value of all the adjacent vertices of the picked vertex.
+      for (int v = 0; v < numVertices; v++) {
+        // Update time[v] only if is not processed yet, there is an edge from u to v,
+        // and total weight of path from source to v through u is smaller than current value of time[v]
+        if (!processed[v] && lengths[u][v]!=0 && times[u] != Integer.MAX_VALUE && times[u]+lengths[u][v] < times[v]) {
+          int waitTime;
+          // our start time and distance to the node
+          int arriveTime = times[u] + startTime;
+          int firstTrainTime = first[u][v];
+          // arrive early or same time
+          if (firstTrainTime >= arriveTime) {
+            waitTime = firstTrainTime - arriveTime;
+          } else {
+            // arrive late,miss the first train, but next train arrived
+            if ((arriveTime - firstTrainTime) % freq[u][v] == 0) waitTime = 0;
+            else
+              // arrive late, miss the first train, next train not yet arrive
+              waitTime = freq[u][v] - (arriveTime - firstTrainTime) % freq[u][v];
+          }
+          // keep updating the shortest time
+          if (times[u] + lengths[u][v] + waitTime < times[v]) {
+            times[v] = times[u] + lengths[u][v] + waitTime;
+          }
+        }
+      }
+    }
+    return times[T];
   }
 
   /**
@@ -121,9 +166,34 @@ public class FastestRoutePublicTransit {
       {8, 11, 0, 0, 0, 0, 1, 0, 7},
       {0, 0, 2, 0, 0, 0, 6, 7, 0}
     };
+
     FastestRoutePublicTransit t = new FastestRoutePublicTransit();
     t.shortestTime(lengthTimeGraph, 0);
 
     // You can create a test case for your implemented method for extra credit below
+    int[][] lengths = new int[][] {
+            { 0, 12, 0, 8 },
+            { 12, 0, 11, 0 },
+            { 0, 11, 0, 6 },
+            { 8, 0, 6, 0 }
+    };
+    int[][] first = new int[][] {
+            { 0, 13, 0, 0 },
+            { 13, 0, 8, 0 },
+            { 0, 8, 0, 7 },
+            { 0, 0, 7, 0 }
+    };
+    int[][] freq = new int[][] {
+            { 0, 5, 0, 4 },
+            { 5, 0, 3, 0 },
+            { 0, 3, 0, 9 },
+            { 4, 0, 9, 0 }
+    };
+    int stationS = 0;
+    int stationT = 3;
+    int startTime = 12;
+    int shortestTime = t.myShortestTravelTime(stationS, stationT, startTime, lengths, first, freq);
+    System.out.print("Shortest time from station:" + stationS + " to " + "station:" + stationT + " from time:"
+            + startTime + " is " + shortestTime);
   }
 }
