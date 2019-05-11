@@ -29,15 +29,53 @@ public class PhysicsExperiment {
    *     student X is assigned to step Y in an optimal schedule
    */
   public int[][] scheduleExperiments(
-    int numStudents,
-    int numSteps,
-    int[][] signUpTable
+          int numStudents,
+          int numSteps,
+          int[][] signUpTable
   ) {
     // Your scheduleTable is initialized as all 0's so far. Your code will put 1's
     // in the table in the right places based on the return description
     int[][] scheduleTable = new int[numStudents + 1][numSteps + 1];
 
     // Your code goes here
+    int student = 1;
+    int step = 1;
+    // check from first step, first student
+    while(step <= numSteps) {
+      // if the student did not signed up for this step,
+      // check all other students for most consecutive step that he/she can do from this step
+      if(signUpTable[student][step] == 0) {
+        int mostLongest = 0; // most consecutive step among all student
+        int newStudent = 1; // a flag indicate which student can do max consecutive step at this step
+        for (int row = 1; row <= numStudents; row++) {
+          int currentLongest = 0; // most consecutive step of current student
+          // column always start from this step to the end
+          for (int col = step; col <= numSteps; col++) {
+            // checking for most consecutive step of current student
+            if (signUpTable[row][col] == 1) {
+              currentLongest++;
+            } else {
+              break;
+            }
+            // compare and find the most consecutive step among all student,
+            // and indicate the row of that student
+            if (currentLongest > mostLongest) {
+              mostLongest = currentLongest;
+              newStudent = row;
+            }
+          }
+          // set the student to the student that it can do most consecutive step at this step,
+          // so next while loop will just start to assign
+          student = newStudent;
+        }
+      }
+      // if the student signed up for this step
+      else {
+        // we assign the max step the student can do continuously to this student from current step
+        scheduleTable[student][step] = 1;
+        step++;
+      }
+    }
 
     return scheduleTable;
   }
